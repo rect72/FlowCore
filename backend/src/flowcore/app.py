@@ -4,9 +4,12 @@ from flowcore.api.errors import register_exception_handlers
 from flowcore.api.middlewares.logging import logging_middleware
 from flowcore.api.router import api_router
 from flowcore.core.config import settings
+from flowcore.core.logging import setup_logging
 
 
 def create_app() -> FastAPI:
+    setup_logging()
+
     app = FastAPI(
         title=settings.app_name,
         version=settings.app_version,

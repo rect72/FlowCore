@@ -7,6 +7,8 @@ async def http_exception_handler(
     request: Request,
     exc: StarletteHTTPException,
 ) -> JSONResponse:
+    request_id = getattr(request.state, "request_id", None)
+
     if exc.status_code == 404:
         code = "not_found"
         message = "Resource not found."
@@ -20,6 +22,7 @@ async def http_exception_handler(
             "error": {
                 "code": code,
                 "message": message,
+                "request_id": request_id,
             }
         },
     )
