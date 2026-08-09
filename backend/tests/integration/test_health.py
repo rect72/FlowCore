@@ -24,3 +24,12 @@ def test_not_found_error_has_unified_format() -> None:
     assert response_data["error"]["message"] == "Resource not found."
     assert response_data["error"]["request_id"] is not None
     assert response.headers["X-Request-ID"] == response_data["error"]["request_id"]
+
+def test_app_info() -> None:
+    response = client.get("/api/v1/info")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "name": "FlowCore",
+        "version": "0.1.0",
+    }
