@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     host: str
     port: int
     log_level: str
+    database_url: str
 
     model_config = SettingsConfigDict(
         env_file=".env",
