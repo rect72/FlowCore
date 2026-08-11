@@ -37,3 +37,22 @@ async def get_organization_by_id(
     )
 
     return result.scalar_one_or_none()
+
+async def update_organization(
+    db: AsyncSession,
+    organization: OrganizationModel,
+    name: str,
+) -> OrganizationModel:
+    organization.name = name
+
+    await db.commit()
+    await db.refresh(organization)
+
+    return organization
+
+async def delete_organization(
+    db: AsyncSession,
+    organization: OrganizationModel,
+) -> None:
+    await db.delete(organization)
+    await db.commit()
