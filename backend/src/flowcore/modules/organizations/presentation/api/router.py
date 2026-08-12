@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from flowcore.api.dependencies.common import get_db
@@ -9,14 +9,20 @@ from flowcore.modules.organizations.presentation.api.schemas import (
     OrganizationUpdate,
 )
 
-
-from flowcore.modules.organizations.infrastructure.repository import (
-    create_organization,
-    delete_organization,
-    get_organization_by_id,
-    get_organizations,
-    update_organization,
+from flowcore.modules.organizations.application.service import (
+    create_organization_service,
+    delete_organization_service,
+    get_organization_service,
+    get_organizations_service,
+    update_organization_service,
 )
+
+from flowcore.modules.organizations.application.exceptions import (
+    OrganizationNotFoundError,
+)
+
+from fastapi import Request
+from fastapi.responses import JSONResponse
 
 router = APIRouter(
     prefix="/organizations",
@@ -33,7 +39,7 @@ async def create_organization_endpoint(
     data: OrganizationCreate,
     db: AsyncSession = Depends(get_db),
 ) -> OrganizationResponse:
-    organization = await create_organization(
+    organization = await create_organization_service(
         db=db,
         name=data.name,
     )
@@ -47,7 +53,7 @@ async def create_organization_endpoint(
 async def get_organizations_endpoint(
     db: AsyncSession = Depends(get_db),
 ) -> list[OrganizationResponse]:
-    organizations = await get_organizations(db)
+    organizations = await get_organizations_service(db)
 
     return [
         OrganizationResponse.model_validate(organization)
@@ -62,16 +68,10 @@ async def get_organization_endpoint(
     organization_id: int,
     db: AsyncSession = Depends(get_db),
 ) -> OrganizationResponse:
-    organization = await get_organization_by_id(
+    organization = await get_organization_service(
         db=db,
         organization_id=organization_id,
     )
-
-    if organization is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Organization not found.",
-        )
 
     return OrganizationResponse.model_validate(organization)
 
@@ -84,18 +84,12 @@ async def update_organization_endpoint(
     data: OrganizationUpdate,
     db: AsyncSession = Depends(get_db),
 ) -> OrganizationResponse:
-    organization = await get_organization_by_id(
+    organization = await get_organization_service(
         db=db,
         organization_id=organization_id,
     )
 
-    if organization is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Organization not found.",
-        )
-
-    updated_organization = await update_organization(
+    updated_organization = await update_organization_service(
         db=db,
         organization=organization,
         name=data.name,
@@ -111,18 +105,29 @@ async def delete_organization_endpoint(
     organization_id: int,
     db: AsyncSession = Depends(get_db),
 ) -> None:
-    organization = await get_organization_by_id(
+    organization = await get_organization_service(
         db=db,
         organization_id=organization_id,
     )
 
-    if organization is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Organization not found.",
-        )
-
-    await delete_organization(
+    await delete_organization_service(
         db=db,
         organization=organization,
+    )
+
+async def organization_not_found_handler(
+    request: Request,
+    exc: OrganizationNotFoundError,
+) -> JSONResponse:
+    request_id = getattr(request.state, "request_id", None)
+
+    return JSONResponse(
+        status_code=404,
+        content={
+            "error": {
+                "code": "not_found",
+                "message": "Organization not found.",
+                "request_id": request_id,
+            }
+        },
     )

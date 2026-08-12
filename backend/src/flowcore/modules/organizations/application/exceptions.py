@@ -1,0 +1,2 @@
+class OrganizationNotFoundError(Exception):
+    pass

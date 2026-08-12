@@ -58,7 +58,7 @@ def test_get_missing_organization_returns_404() -> None:
     response_data = response.json()
 
     assert response_data["error"]["code"] == "not_found"
-    assert response_data["error"]["message"] == "Resource not found."
+    assert response_data["error"]["message"] == "Organization not found."
     assert response_data["error"]["request_id"] is not None
 
 def test_update_organization() -> None:

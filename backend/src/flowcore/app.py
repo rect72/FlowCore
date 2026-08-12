@@ -6,6 +6,12 @@ from flowcore.api.router import api_router
 from flowcore.core.config import settings
 from flowcore.core.logging import setup_logging
 
+from flowcore.modules.organizations.application.exceptions import (
+    OrganizationNotFoundError,
+)
+from flowcore.modules.organizations.presentation.api.router import (
+    organization_not_found_handler,
+)
 
 def create_app() -> FastAPI:
     setup_logging()
@@ -17,6 +23,11 @@ def create_app() -> FastAPI:
         docs_url="/docs",
         redoc_url="/redoc",
         openapi_url="/openapi.json",
+    )
+
+    app.add_exception_handler(
+        OrganizationNotFoundError,
+        organization_not_found_handler,
     )
 
     app.middleware("http")(logging_middleware)
