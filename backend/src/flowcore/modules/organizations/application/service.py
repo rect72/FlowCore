@@ -1,53 +1,49 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-
+from flowcore.modules.organizations.application.exceptions import (
+    OrganizationNotFoundError,
+)
+from flowcore.modules.organizations.domain.repository import (
+    OrganizationRepository,
+)
 from flowcore.modules.organizations.infrastructure.models import (
     OrganizationModel,
 )
 
-from flowcore.modules.organizations.infrastructure.repository import (
-    create_organization,
-    delete_organization,
-    get_organization_by_id,
-    get_organizations,
-    update_organization,
-)
-
-from flowcore.modules.organizations.application.exceptions import (
-    OrganizationNotFoundError,
-)
 
 async def create_organization_service(
-    db: AsyncSession,
+    repository: OrganizationRepository,
     name: str,
 ) -> OrganizationModel:
-    organization = await create_organization(
-        db=db,
-        name=name,
-    )
+    organization = await repository.create(name)
 
     return organization
 
+
+async def get_organizations_service(
+    repository: OrganizationRepository,
+) -> list[OrganizationModel]:
+    organizations = await repository.get_all()
+
+    return organizations
+
+
 async def get_organization_service(
-    db: AsyncSession,
+    repository: OrganizationRepository,
     organization_id: int,
 ) -> OrganizationModel:
-    organization = await get_organization_by_id(
-        db=db,
-        organization_id=organization_id,
-    )
+    organization = await repository.get_by_id(organization_id)
 
     if organization is None:
         raise OrganizationNotFoundError
 
     return organization
 
+
 async def update_organization_service(
-    db: AsyncSession,
+    repository: OrganizationRepository,
     organization: OrganizationModel,
     name: str,
 ) -> OrganizationModel:
-    updated_organization = await update_organization(
-        db=db,
+    updated_organization = await repository.update(
         organization=organization,
         name=name,
     )
@@ -56,17 +52,7 @@ async def update_organization_service(
 
 
 async def delete_organization_service(
-    db: AsyncSession,
+    repository: OrganizationRepository,
     organization: OrganizationModel,
 ) -> None:
-    await delete_organization(
-        db=db,
-        organization=organization,
-    )
-
-async def get_organizations_service(
-    db: AsyncSession,
-) -> list[OrganizationModel]:
-    organizations = await get_organizations(db)
-
-    return organizations
+    await repository.delete(organization)

@@ -1,58 +1,62 @@
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from flowcore.modules.organizations.infrastructure.models import OrganizationModel
 
-from sqlalchemy import select
 
-async def create_organization(
-    db: AsyncSession,
-    name: str,
-) -> OrganizationModel:
-    organization = OrganizationModel(name=name)
+class SQLAlchemyOrganizationRepository:
+    def __init__(self, db: AsyncSession) -> None:
+        self.db = db
 
-    db.add(organization)
-
-    await db.commit()
-    await db.refresh(organization)
-
-    return organization
-
-async def get_organizations(
-    db: AsyncSession,
-) -> list[OrganizationModel]:
-    result = await db.execute(
-        select(OrganizationModel)
-    )
-
-    return list(result.scalars().all())
-
-async def get_organization_by_id(
-    db: AsyncSession,
-    organization_id: int,
-) -> OrganizationModel | None:
-    result = await db.execute(
-        select(OrganizationModel).where(
-            OrganizationModel.id == organization_id
+    async def get_by_id(
+        self,
+        organization_id: int,
+    ) -> OrganizationModel | None:
+        result = await self.db.execute(
+            select(OrganizationModel).where(
+                OrganizationModel.id == organization_id
+            )
         )
-    )
 
-    return result.scalar_one_or_none()
+        return result.scalar_one_or_none()
 
-async def update_organization(
-    db: AsyncSession,
-    organization: OrganizationModel,
-    name: str,
-) -> OrganizationModel:
-    organization.name = name
+    async def get_all(
+        self,
+    ) -> list[OrganizationModel]:
+        result = await self.db.execute(
+            select(OrganizationModel)
+        )
 
-    await db.commit()
-    await db.refresh(organization)
+        return list(result.scalars().all())
 
-    return organization
+    async def create(
+        self,
+        name: str,
+    ) -> OrganizationModel:
+        organization = OrganizationModel(name=name)
 
-async def delete_organization(
-    db: AsyncSession,
-    organization: OrganizationModel,
-) -> None:
-    await db.delete(organization)
-    await db.commit()
+        self.db.add(organization)
+
+        await self.db.commit()
+        await self.db.refresh(organization)
+
+        return organization
+
+    async def update(
+        self,
+        organization: OrganizationModel,
+        name: str,
+    ) -> OrganizationModel:
+        organization.name = name
+
+        await self.db.commit()
+        await self.db.refresh(organization)
+
+        return organization
+
+    async def delete(
+        self,
+        organization: OrganizationModel,
+    ) -> None:
+        await self.db.delete(organization)
+        await self.db.commit()
