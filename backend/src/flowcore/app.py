@@ -7,9 +7,12 @@ from flowcore.core.config import settings
 from flowcore.core.logging import setup_logging
 
 from flowcore.modules.organizations.application.exceptions import (
+    OrganizationNameNotAllowedError,
     OrganizationNotFoundError,
 )
+
 from flowcore.modules.organizations.presentation.api.router import (
+    organization_name_not_allowed_handler,
     organization_not_found_handler,
 )
 
@@ -28,6 +31,11 @@ def create_app() -> FastAPI:
     app.add_exception_handler(
         OrganizationNotFoundError,
         organization_not_found_handler,
+    )
+
+    app.add_exception_handler(
+        OrganizationNameNotAllowedError,
+        organization_name_not_allowed_handler,
     )
 
     app.middleware("http")(logging_middleware)

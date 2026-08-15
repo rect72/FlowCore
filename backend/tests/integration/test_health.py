@@ -109,3 +109,22 @@ def test_create_organization_rejects_empty_name() -> None:
     )
 
     assert response.status_code == 422
+
+def test_create_organization_rejects_forbidden_name() -> None:
+    response = client.post(
+        "/api/v1/organizations",
+        json={"name": "admin"},
+    )
+
+    assert response.status_code == 400
+
+    response_data = response.json()
+
+    assert (
+        response_data["error"]["code"]
+        == "organization_name_not_allowed"
+    )
+    assert (
+        response_data["error"]["message"]
+        == "Organization name is not allowed."
+    )

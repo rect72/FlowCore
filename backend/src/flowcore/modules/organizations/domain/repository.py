@@ -1,37 +1,35 @@
 from typing import Protocol
 
-from flowcore.modules.organizations.infrastructure.models import (
-    OrganizationModel,
-)
+from flowcore.modules.organizations.domain.entities import Organization
 
 
 class OrganizationRepository(Protocol):
     async def get_by_id(
         self,
         organization_id: int,
-    ) -> OrganizationModel | None:
+    ) -> Organization | None:
         ...
 
     async def get_all(
         self,
-    ) -> list[OrganizationModel]:
+    ) -> list[Organization]:
         ...
 
     async def create(
         self,
         name: str,
-    ) -> OrganizationModel:
+    ) -> Organization:
         ...
 
     async def update(
         self,
-        organization: OrganizationModel,
+        organization: Organization,
         name: str,
-    ) -> OrganizationModel:
+    ) -> Organization:
         ...
 
     async def delete(
         self,
-        organization: OrganizationModel,
+        organization: Organization,
     ) -> None:
         ...

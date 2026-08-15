@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 
 from flowcore.api.dependencies.common import get_organization_repository
 from flowcore.modules.organizations.application.exceptions import (
+    OrganizationNameNotAllowedError,
     OrganizationNotFoundError,
 )
 from flowcore.modules.organizations.application.service import (
@@ -45,6 +46,22 @@ async def organization_not_found_handler(
         },
     )
 
+async def organization_name_not_allowed_handler(
+    request: Request,
+    exc: OrganizationNameNotAllowedError,
+) -> JSONResponse:
+    request_id = getattr(request.state, "request_id", None)
+
+    return JSONResponse(
+        status_code=400,
+        content={
+            "error": {
+                "code": "organization_name_not_allowed",
+                "message": "Organization name is not allowed.",
+                "request_id": request_id,
+            }
+        },
+    )
 
 @router.post(
     "",
